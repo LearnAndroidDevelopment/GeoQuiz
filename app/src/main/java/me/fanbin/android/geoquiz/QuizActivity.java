@@ -14,6 +14,8 @@ public class QuizActivity extends AppCompatActivity {
 
     private static final String TAG = "QuizActivity";
     private static final String KEY_INDEX = "index";
+    private static final String KEY_ANSWERED = "answered";
+    private static final String KEY_USER_ANSWER = "user_answer";
 
     private Button mTrueButton;
     private Button mFalseButton;
@@ -30,6 +32,9 @@ public class QuizActivity extends AppCompatActivity {
             new Question(R.string.question_asia, true)
     };
 
+    private boolean[] mQuestionAnswered = new boolean[mQuestionBank.length];
+    private boolean[] mUserAnwser = new boolean[mQuestionBank.length];
+
     private int mCurrentIndex = 0;
 
     @Override
@@ -40,6 +45,8 @@ public class QuizActivity extends AppCompatActivity {
 
         if (savedInstanceState != null) {
             mCurrentIndex = savedInstanceState.getInt(KEY_INDEX, 0);
+            mQuestionAnswered = savedInstanceState.getBooleanArray(KEY_ANSWERED);
+            mUserAnwser = savedInstanceState.getBooleanArray(KEY_USER_ANSWER);
         }
 
         mQuestionTextView = (TextView) findViewById(R.id.question_text_view);
@@ -95,6 +102,8 @@ public class QuizActivity extends AppCompatActivity {
         super.onSaveInstanceState(outState);
         Log.i(TAG, "onSaveInstanceState");
         outState.putInt(KEY_INDEX, mCurrentIndex);
+        outState.putBooleanArray(KEY_ANSWERED, mQuestionAnswered);
+        outState.putBooleanArray(KEY_USER_ANSWER, mUserAnwser);
     }
 
     @Override
@@ -111,10 +120,17 @@ public class QuizActivity extends AppCompatActivity {
 
     private void updateQuestion() {
         int question = mQuestionBank[mCurrentIndex].getTextResId();
+        mTrueButton.setEnabled(!mQuestionAnswered[mCurrentIndex]);
+        mFalseButton.setEnabled(!mQuestionAnswered[mCurrentIndex]);
         mQuestionTextView.setText(question);
     }
 
     private void checkAnswer(boolean userPressedTrue) {
+        mUserAnwser[mCurrentIndex] = userPressedTrue;
+        mQuestionAnswered[mCurrentIndex] = true;
+        mTrueButton.setEnabled(!mQuestionAnswered[mCurrentIndex]);
+        mFalseButton.setEnabled(!mQuestionAnswered[mCurrentIndex]);
+
         boolean answerIsTrue = mQuestionBank[mCurrentIndex].isAnswerTrue();
 
         int messageRedId = 0;
@@ -126,6 +142,22 @@ public class QuizActivity extends AppCompatActivity {
         }
 
         Toast.makeText(this, messageRedId, Toast.LENGTH_SHORT).show();
+
+        checkScore();
+
+    }
+
+    private void checkScore() {
+        for (boolean bool : mQuestionAnswered) {
+            if (!bool) return;
+        }
+        double score = 0;
+        for (int i = 0; i < mQuestionBank.length; i++) {
+            if (mQuestionBank[i].isAnswerTrue() == mUserAnwser[i]) {
+                score++;
+            }
+        }
+        Toast.makeText(this, (int)((score / mQuestionBank.length) * 100) + "%", Toast.LENGTH_SHORT).show();
     }
 
 }
