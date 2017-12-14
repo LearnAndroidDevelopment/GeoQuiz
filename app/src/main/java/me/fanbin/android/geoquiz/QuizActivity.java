@@ -2,6 +2,7 @@ package me.fanbin.android.geoquiz;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.os.Build;
 import android.os.PersistableBundle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -25,6 +26,8 @@ public class QuizActivity extends AppCompatActivity {
 
     private TextView mQuestionTextView;
 
+    private TextView mVersionTextView;
+
     private Question[] mQuestionBank = new Question[] {
             new Question(R.string.question_australia, true),
             new Question(R.string.question_oceans, true),
@@ -36,6 +39,8 @@ public class QuizActivity extends AppCompatActivity {
 
     private int mCurrentIndex = 0;
     private boolean mIsCheater;
+
+    private int mCheatCount = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,6 +83,7 @@ public class QuizActivity extends AppCompatActivity {
         mCheatButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                updateCheatCount();
                 boolean answerIsTrue = mQuestionBank[mCurrentIndex].isAnswerTrue();
                 Intent intent = CheatActivity.newIntent(QuizActivity.this, answerIsTrue);
                 startActivityForResult(intent, REQUEST_CODE_CHEAT);
@@ -85,6 +91,9 @@ public class QuizActivity extends AppCompatActivity {
         });
 
         updateQuestion();
+
+        mVersionTextView = (TextView) findViewById(R.id.version_text_view);
+        mVersionTextView.setText(String.format("API Level %d", Build.VERSION.SDK_INT));
     }
 
     @Override
@@ -158,6 +167,13 @@ public class QuizActivity extends AppCompatActivity {
         }
 
         Toast.makeText(this, messageRedId, Toast.LENGTH_SHORT).show();
+    }
+
+    private void updateCheatCount() {
+        mCheatCount += 1;
+        if (mCheatCount >= 3) {
+            mCheatButton.setEnabled(false);
+        }
     }
 
 }
